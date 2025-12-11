@@ -60,6 +60,12 @@ fi
 
 chmod +x "$APP_BUNDLE/Contents/MacOS/ZenwareFocus"
 
+# Step 4.5: Copy app icon if available
+if [ -f "Resources/AppIcon.icns" ]; then
+    echo "🎨 Adding app icon..."
+    cp "Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+fi
+
 # Step 5: Create Info.plist
 echo "📝 Creating Info.plist..."
 cat > "$APP_BUNDLE/Contents/Info.plist" << 'EOF'
@@ -69,6 +75,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << 'EOF'
 <dict>
     <key>CFBundleExecutable</key>
     <string>ZenwareFocus</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleIdentifier</key>
     <string>com.zenware.focus</string>
     <key>CFBundleName</key>
