@@ -201,14 +201,6 @@ swift run --configuration debug
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
-
-[Add your license here]
-
 ## Acknowledgments
 
 Inspired by [Raycast Focus](https://www.raycast.com/core-features/focus) and other productivity tools.
-
----
-
-**Built with ❤️ using Swift and SwiftUI**
