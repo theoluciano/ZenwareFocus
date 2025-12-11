@@ -2,7 +2,7 @@
 
 A powerful focus and productivity app for macOS that helps you stay in flow by blocking distracting apps and websites during focused work sessions.
 
-> **Latest Update (v0.1.1)**: Refined UI with cleaner design, fixed browser force-launch bug, improved spacing and visual hierarchy.
+<img width="412" height="572" alt="image" src="https://github.com/user-attachments/assets/79ef3b7d-60d8-49fe-a3f4-7e639ef449fb" />
 
 ## Features
 
