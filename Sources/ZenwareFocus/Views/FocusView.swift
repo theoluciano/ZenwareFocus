@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FocusView: View {
-    @StateObject private var focusManager = FocusManager()
+    @EnvironmentObject var focusManager: FocusManager
     @State private var selectedTab: FocusTab = .start
     
     var body: some View {
@@ -39,7 +39,6 @@ struct FocusView: View {
         .background(Color(NSColor.windowBackgroundColor))
     }
 }
-
 // MARK: - Header View
 
 struct HeaderView: View {

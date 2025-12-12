@@ -81,7 +81,7 @@ enum BlockCategory: String, Codable, CaseIterable, Identifiable {
         case .shopping:
             return ["Amazon", "eBay", "Etsy"]
         case .news:
-            return ["News", "Safari"] // Can be filtered by domain
+            return ["News", "Safari", "Arc"] // Can be filtered by domain
         case .entertainment:
             return ["YouTube", "Netflix", "Spotify", "Apple TV"]
         case .gaming:
