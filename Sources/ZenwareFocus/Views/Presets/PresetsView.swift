@@ -3,7 +3,6 @@ import SwiftUI
 struct PresetsView: View {
     @ObservedObject var focusManager: FocusManager
     @State private var selectedPreset: FocusPreset?
-    @State private var showingGoalSheet = false
     
     var body: some View {
         ScrollView {
@@ -19,7 +18,6 @@ struct PresetsView: View {
                         preset: preset,
                         onSelect: {
                             selectedPreset = preset
-                            showingGoalSheet = true
                         }
                     )
                     .padding(.horizontal, 20)
@@ -28,20 +26,18 @@ struct PresetsView: View {
                 Spacer(minLength: 20)
             }
         }
-        .sheet(isPresented: $showingGoalSheet) {
-            if let preset = selectedPreset {
-                GoalInputSheet(
-                    preset: preset,
-                    onStart: { goal in
-                        let session = focusManager.createSessionFromPreset(preset, goal: goal)
-                        focusManager.startSession(session)
-                        showingGoalSheet = false
-                    },
-                    onCancel: {
-                        showingGoalSheet = false
-                    }
-                )
-            }
+        .sheet(item: $selectedPreset) { preset in
+            GoalInputSheet(
+                preset: preset,
+                onStart: { goal in
+                    let session = focusManager.createSessionFromPreset(preset, goal: goal)
+                    focusManager.startSession(session)
+                    selectedPreset = nil
+                },
+                onCancel: {
+                    selectedPreset = nil
+                }
+            )
         }
     }
 }

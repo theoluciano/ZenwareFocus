@@ -29,12 +29,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if let button = statusBarItem?.button {
             button.image = NSImage(systemSymbolName: "dot.scope", accessibilityDescription: "Zenware Focus")
-            button.imagePosition = .imageLeading
+            button.imagePosition = .imageTrailing
             button.action = #selector(togglePopover)
             button.target = self
             
             // Use monospaced font for consistent width and set alignment
-            button.font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
+            button.font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .regular)
             button.alignment = .center
             
             // Remove default spacing between image and title
@@ -79,7 +79,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         // Ensure fixed width when showing timer
-        statusBarItem?.length = 80
+        statusBarItem?.length = 60
         
         // Calculate remaining time
         let remaining = endTime.timeIntervalSinceNow

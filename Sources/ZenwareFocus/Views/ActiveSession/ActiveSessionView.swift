@@ -8,17 +8,17 @@ struct ActiveSessionView: View {
             if let session = focusManager.currentSession {
                 goalSection(for: session)
                 timerCircle(for: session)
-                controlButtons(for: session)
-                
                 Spacer()
+                controlButtons(for: session)
             }
         }
+        .padding(.bottom, 30)
     }
     
     // MARK: - Goal Section
     
     private func goalSection(for session: FocusSession) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             Text("Focusing on:")
                 .font(.system(size: 13))
                 .foregroundColor(.secondary)
@@ -29,8 +29,7 @@ struct ActiveSessionView: View {
                 .lineLimit(3)
                 .padding(.horizontal, 30)
         }
-        .padding(.top, 30)
-        .padding(.bottom, 20)
+        .padding(.top, 40)
     }
     
     // MARK: - Timer Circle
@@ -38,7 +37,7 @@ struct ActiveSessionView: View {
     private func timerCircle(for session: FocusSession) -> some View {
         ZStack {
             Circle()
-                .stroke(Color.gray.opacity(0.15), lineWidth: 18)
+                .stroke(Color.gray.opacity(0.15), lineWidth: 14)
                 .frame(width: 200, height: 200)
             
             Circle()
@@ -49,7 +48,7 @@ struct ActiveSessionView: View {
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    style: StrokeStyle(lineWidth: 18, lineCap: .round)
+                    style: StrokeStyle(lineWidth: 14, lineCap: .round)
                 )
                 .frame(width: 200, height: 200)
                 .rotationEffect(.degrees(-90))
@@ -57,7 +56,7 @@ struct ActiveSessionView: View {
             
             VStack(spacing: 4) {
                 Text(session.formattedRemainingTime)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .font(.system(size: 40, weight: .semibold, design: .default))
                     .monospacedDigit()
                 
                 if session.isPaused {
@@ -67,7 +66,7 @@ struct ActiveSessionView: View {
                 }
             }
         }
-        .padding(.vertical, 30)
+        .padding(.top, 40)
     }
     
     // MARK: - Control Buttons

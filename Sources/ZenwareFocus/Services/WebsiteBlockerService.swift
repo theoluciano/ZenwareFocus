@@ -6,9 +6,7 @@ class WebsiteBlockerService {
     private var blockedWebsites: Set<String> = []
     private var hostsFilePath = "/etc/hosts"
     private var isActive = false
-    
-    // Temporary solution: Use hosts file blocking
-    // Note: This requires sudo permissions, so we'll implement a lightweight approach
+    private var monitoringTimer: Timer?
     
     init() {
         // Initialize the service
@@ -68,12 +66,25 @@ class WebsiteBlockerService {
         
         isActive = true
         
-        // Don't start monitoring immediately - wait for browsers to actually be running
-        // This prevents force-opening browsers
+        // Start timer to check browser tabs every 2 seconds
+        monitoringTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+            self?.checkAllBrowsers()
+        }
     }
     
     private func stopBrowserMonitoring() {
         isActive = false
+        monitoringTimer?.invalidate()
+        monitoringTimer = nil
+    }
+    
+    private func checkAllBrowsers() {
+        guard isActive && !blockedWebsites.isEmpty else { return }
+        
+        checkSafariTabs()
+        checkChromeTabs()
+        checkArcTabs()
+        checkFirefoxTabs()
     }
     
     private func checkSafariTabs() {
@@ -136,6 +147,37 @@ class WebsiteBlockerService {
         executeAppleScript(script)
     }
     
+    private func checkArcTabs() {
+        guard isActive && !blockedWebsites.isEmpty else { return }
+        
+        // Only check if Arc is already running - don't launch it
+        let runningApps = NSWorkspace.shared.runningApplications
+        let isArcRunning = runningApps.contains { $0.bundleIdentifier == "company.thebrowser.Browser" }
+        
+        guard isArcRunning else { return }
+        
+        // Arc uses similar AppleScript to Chrome since it's Chromium-based
+        let script = """
+        tell application "Arc"
+            if not running then return
+            set blockedSites to {"\(blockedWebsites.joined(separator: "\", \""))"}
+            repeat with theWindow in windows
+                repeat with theTab in tabs of theWindow
+                    set tabURL to URL of theTab
+                    repeat with blockedSite in blockedSites
+                        if tabURL contains blockedSite then
+                            set URL of theTab to "about:blank"
+                            return "blocked"
+                        end if
+                    end repeat
+                end repeat
+            end repeat
+        end tell
+        """
+        
+        executeAppleScript(script)
+    }
+    
     private func checkFirefoxTabs() {
         // Firefox doesn't have great AppleScript support - skip for now
     }
@@ -147,7 +189,10 @@ class WebsiteBlockerService {
         if let scriptObject = NSAppleScript(source: script) {
             let result = scriptObject.executeAndReturnError(&error)
             
-            // Silently ignore errors - browser might not be running or accessible
+            if let error = error {
+                // Silently log errors for debugging
+                print("AppleScript error: \(error)")
+            }
             _ = result
         }
     }
@@ -159,44 +204,6 @@ class WebsiteBlockerService {
     func requestContentFilterPermission() {
         // This would request permission to install a content filter
         // Requires Network Extension framework and proper entitlements
-        
-        // Example (commented out as it requires full setup):
-        /*
-        NEFilterManager.shared().loadFromPreferences { error in
-            if let error = error {
-                print("Failed to load filter configuration: \(error)")
-                return
-            }
-            
-            let filterConfiguration = NEFilterManager.shared()
-            filterConfiguration.isEnabled = true
-            
-            filterConfiguration.saveToPreferences { error in
-                if let error = error {
-                    print("Failed to save filter configuration: \(error)")
-                } else {
-                    print("Content filter enabled successfully")
-                }
-            }
-        }
-        */
-    }
-    
-    // MARK: - Hosts File Approach (Alternative)
-    // This requires admin privileges
-    
-    private func blockViaHostsFile() {
-        // This would modify /etc/hosts to redirect blocked domains to 127.0.0.1
-        // Requires sudo access, so we'd need to ask for admin password
-        
-        var hostsEntries = ""
-        for domain in blockedWebsites {
-            hostsEntries += "127.0.0.1 \(domain)\n"
-            hostsEntries += "127.0.0.1 www.\(domain)\n"
-        }
-        
-        // Would execute: echo "entries" | sudo tee -a /etc/hosts
-        // This is commented out as it requires privilege elevation
     }
     
     // MARK: - Helper Methods
