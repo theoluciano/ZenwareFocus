@@ -3,6 +3,8 @@ import SwiftUI
 struct PresetCard: View {
     let preset: FocusPreset
     let onSelect: () -> Void
+    let onDelete: () -> Void
+    @State private var isHovering = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -13,6 +15,16 @@ struct PresetCard: View {
                 Text(formatDuration(preset.duration))
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
+
+                if isHovering {
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Delete preset")
+                }
             }
             
             if !preset.blockCategories.isEmpty {
@@ -51,6 +63,9 @@ struct PresetCard: View {
         .padding(16)
         .background(Color.gray.opacity(0.08))
         .cornerRadius(12)
+        .onHover { hovering in
+            isHovering = hovering
+        }
     }
     
     private func formatDuration(_ duration: TimeInterval) -> String {

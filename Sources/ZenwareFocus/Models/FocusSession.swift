@@ -129,6 +129,7 @@ enum BlockCategory: String, Codable, CaseIterable, Identifiable {
 // MARK: - Focus Preset
 struct FocusPreset: Identifiable, Codable {
     let id: UUID
+    var sourceSessionId: UUID?
     var name: String
     var duration: TimeInterval
     var blockCategories: [BlockCategory]
@@ -141,9 +142,11 @@ struct FocusPreset: Identifiable, Codable {
         duration: TimeInterval,
         blockCategories: [BlockCategory] = [],
         customApps: [String] = [],
-        customWebsites: [String] = []
+        customWebsites: [String] = [],
+        sourceSessionId: UUID? = nil
     ) {
         self.id = id
+        self.sourceSessionId = sourceSessionId
         self.name = name
         self.duration = duration
         self.blockCategories = blockCategories

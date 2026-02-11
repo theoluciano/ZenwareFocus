@@ -3,13 +3,31 @@ import SwiftUI
 struct HistoryCard: View {
     let session: FocusSession
     let onDelete: () -> Void
+    let onSavePreset: () -> Void
+    let isSaved: Bool
     @State private var showingDeleteAlert = false
+    @State private var isHovering = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(session.goal)
-                .font(.system(size: 14, weight: .semibold))
-                .lineLimit(2)
+            HStack(spacing: 8) {
+                Text(session.goal)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(2)
+
+                Spacer()
+
+                if isSaved || isHovering {
+                    Button(action: onSavePreset) {
+                        Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(isSaved ? .secondary : .primary)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isSaved)
+                    .help(isSaved ? "Saved as preset" : "Save as preset")
+                }
+            }
             
             HStack(spacing: 16) {
                 if let startTime = session.startTime {
@@ -46,7 +64,17 @@ struct HistoryCard: View {
         .padding(14)
         .background(Color.gray.opacity(0.08))
         .cornerRadius(10)
+        .onHover { hovering in
+            isHovering = hovering
+        }
         .contextMenu {
+            Button {
+                onSavePreset()
+            } label: {
+                Label("Save as Preset", systemImage: "bookmark.fill")
+            }
+            .disabled(isSaved)
+
             Button(role: .destructive) {
                 showingDeleteAlert = true
             } label: {

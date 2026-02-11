@@ -5,19 +5,21 @@ import Combine
 class FocusManager: ObservableObject {
     // MARK: - Published Properties
     @Published var currentSession: FocusSession?
-    @Published var savedPresets: [FocusPreset] = FocusPreset.defaultPresets
+    @Published var savedPresets: [FocusPreset] = []
     @Published var sessionHistory: [FocusSession] = []
     @Published var snoozeStates: [SnoozeState] = []
     
     // MARK: - Private Properties
     private var timer: Timer?
     private var sessionDefaults = UserDefaults.standard
+    private var snoozeObserver: NSObjectProtocol?
     
     // MARK: - Services
     private let appBlocker = AppBlockerService()
     private let websiteBlocker = WebsiteBlockerService()
     
     init() {
+        setupSnoozeObserver()
         loadSavedData()
     }
     
@@ -253,18 +255,38 @@ class FocusManager: ObservableObject {
     
     // MARK: - Presets
     
-    func savePreset(_ preset: FocusPreset) {
-        if let index = savedPresets.firstIndex(where: { $0.id == preset.id }) {
-            savedPresets[index] = preset
-        } else {
-            savedPresets.append(preset)
+    func deletePreset(_ preset: FocusPreset) {
+        let sourceId = preset.sourceSessionId
+        savedPresets.removeAll { existing in
+            if existing.id == preset.id {
+                return true
+            }
+            if let sourceId = sourceId {
+                return existing.sourceSessionId == sourceId
+            }
+            return false
         }
         savePresets()
     }
-    
-    func deletePreset(_ preset: FocusPreset) {
-        savedPresets.removeAll { $0.id == preset.id }
-        savePresets()
+
+    func savePreset(from session: FocusSession) {
+        if isSessionSaved(session) {
+            return
+        }
+        let name = presetName(from: session)
+        let preset = FocusPreset(
+            name: name,
+            duration: session.duration,
+            blockCategories: session.blockCategories,
+            customApps: session.blockedApps,
+            customWebsites: session.blockedWebsites,
+            sourceSessionId: session.id
+        )
+        addPreset(preset)
+    }
+
+    func isSessionSaved(_ session: FocusSession) -> Bool {
+        return savedPresets.contains { $0.sourceSessionId == session.id }
     }
     
     // MARK: - History Management
@@ -313,6 +335,27 @@ class FocusManager: ObservableObject {
             sessionDefaults.set(data, forKey: "savedPresets")
         }
     }
+
+    private func addPreset(_ preset: FocusPreset) {
+        savedPresets.append(preset)
+        savePresets()
+    }
+
+    private func presetName(from session: FocusSession) -> String {
+        let trimmed = session.goal.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            return trimmed
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        if let startTime = session.startTime {
+            return "Session \(formatter.string(from: startTime))"
+        }
+
+        return "Saved Session"
+    }
     
     private func saveHistory() {
         if let data = try? JSONEncoder().encode(sessionHistory) {
@@ -341,6 +384,27 @@ class FocusManager: ObservableObject {
         if let data = sessionDefaults.data(forKey: "sessionHistory"),
            let history = try? JSONDecoder().decode([FocusSession].self, from: data) {
             sessionHistory = history
+        }
+    }
+
+    private func setupSnoozeObserver() {
+        snoozeObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("SnoozeAppRequested"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let appName = notification.userInfo?["appName"] as? String else {
+                return
+            }
+            Task { @MainActor in
+                self?.snoozeApp(appName)
+            }
+        }
+    }
+
+    deinit {
+        if let snoozeObserver = snoozeObserver {
+            NotificationCenter.default.removeObserver(snoozeObserver)
         }
     }
 }

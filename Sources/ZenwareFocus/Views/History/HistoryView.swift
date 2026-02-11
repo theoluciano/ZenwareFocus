@@ -71,7 +71,11 @@ struct HistoryView: View {
                     session: session,
                     onDelete: {
                         focusManager.deleteSession(session)
-                    }
+                    },
+                    onSavePreset: {
+                        focusManager.savePreset(from: session)
+                    },
+                    isSaved: focusManager.isSessionSaved(session)
                 )
                 .padding(.horizontal, 20)
             }

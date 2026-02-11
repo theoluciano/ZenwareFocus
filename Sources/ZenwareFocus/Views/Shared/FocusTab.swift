@@ -18,7 +18,7 @@ enum FocusTab: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .start: return "play.circle.fill"
-        case .presets: return "rectangle.stack.fill"
+        case .presets: return "bookmark.fill"
         case .history: return "clock.fill"
         }
     }
